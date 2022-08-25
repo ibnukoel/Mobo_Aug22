@@ -3,7 +3,7 @@ from controller import Robot, Camera, InertialUnit, DistanceSensor, PositionSens
 import matplotlib.pyplot as plt
 import math, numpy, random, cv2
 import sys, csv
-import pathPlaning
+#import pathPlaning
 from mapping import map,valnya, grid,grid_scale,delta,movementRobot,printmap
 from imager import get_data_from_camera
 
@@ -120,19 +120,20 @@ def getMidPoint(camImage):
 
 def printdata(saveImage,ImageProc,saveRealPos,saveCSV):
     filename = str(str(xname)+extension)
+    loc_save = str("img/"+filename)
     gps_pos=[]
     values=[]
     gps_pos.append(filename)
     values.append(filename)
     if saveImage == 1:
-        camera.saveImage(filename,10)
+        camera.saveImage(loc_save,10)
     if saveRealPos == 1:
         val_gps = gps.getValues()
         gps_pos.append(val_gps[0])
         gps_pos.append(val_gps[1])
         gps_pos.append(val_gps[2])  
     if ImageProc == 1:
-        print(get_data_from_camera(robot,camera))
+        #print(get_data_from_camera(robot,camera))
         values.append(get_data_from_camera(robot,camera))
         print(values)
     if saveCSV == 1:
@@ -144,7 +145,10 @@ def printdata(saveImage,ImageProc,saveRealPos,saveCSV):
         writer = csv.writer(file) 
         writer.writerow(gps_pos)
         file.close()
-
+jalan = 0
+simpanData = 0
+putar = 0
+maju = 0
 while robot.step(timestep) != -1:
     #print('posisi = ', x, y)
     #print('goal   = ', goal)
@@ -155,20 +159,34 @@ while robot.step(timestep) != -1:
         print("get data")
         xname=xname+1
         print(xname)
-    if kb.getKey() == 317:
-        print("automate")
+    if kb.getKey() == 317 or jalan == 1:
+        jalan = 1
+        #print("automate")
         if x == goal[0] and y == goal[1]:
             leftMotor.setVelocity(0)
             rightMotor.setVelocity(0)
+            jalan = 0
+            if selesai == 0 :
+                printdata(1,1,1,1)
+                selesai = 1
         else:
+            selesai = 0
             arah = get_direction()
             arahRobot = arah[0]
             RotEnc_new = get_motor_pos()
             pose = robot_movement(RotEnc, RotEnc_new, enc_unit, pose)
             RotEnc = RotEnc_new
-            printdata(1,0,0,0)
+            #printdata(1,0,0,0)
             #jika arah sesuai MAJU
             if arahRobot >= movementRobot[i][1] - 0.5 and arahRobot <= movementRobot[i][1] + 0.5:    
+                simpanData = 0
+                #flag
+                if maju == 0 :
+                    print("maju")
+                    putar = 0
+                    maju = 1
+                    printdata(1,1,1,1)
+
                 leftMotor.setVelocity(3)
                 rightMotor.setVelocity(3)
                 # kalkulasi pergerakan robot
@@ -181,21 +199,23 @@ while robot.step(timestep) != -1:
     
                 #jika robot masih di grid yang sama
                 if (x_mobo != 0):
-                    print('xmobo ', x_mobo, y_mobo)
+                    printdata(1,1,1,1)
+                    #print('xmobo ', x_mobo, y_mobo)
                     x_mobo_prev = x_mobo + x_mobo_prev
                     y_mobo_prev = y_mobo + y_mobo_prev
                     x += (x_mobo * movementRobot[i][4]) + (y_mobo * movementRobot[i][4])
                     y += (x_mobo * movementRobot[i][5]) + (y_mobo * movementRobot[i][5])
     
-                    print('x dan y = ', x, y)
-                    print('xy_mobo = ', x_mobo, y_mobo)
-                    print('xy_init = ', x_init, y_init)
-                    print('pose = ', pose)
-                    print('movement = ', movementRobot[i][2], movementRobot[i][3])
-                    print('====================')
+                    #print('x dan y = ', x, y)
+                    #print('xy_mobo = ', x_mobo, y_mobo)
+                    #print('xy_init = ', x_init, y_init)
+                    #print('pose = ', pose)
+                    #print('movement = ', movementRobot[i][2], movementRobot[i][3])
+                    #print('====================')
     
                 #jika robot berpindah grid
-                if x_init != x or y_init != y:
+                #if x_init != x or y_init != y:
+                    #simpanData == 1
                     map[x_init][y_init] = ' '
                     map[x][y] = '#'
                     print('updatemap')
@@ -209,9 +229,18 @@ while robot.step(timestep) != -1:
                     pose = [0, 0, 0]
                     x_mobo_prev = 0
                     y_mobo_prev = 0
+                    #printdata(1,1,1,1)
+                    
+                
     
             #arah tidak sesuai PUTAR sampai arah sesuai
-            else:
+            else :
+                #flag
+                if putar == 0 :
+                    print("putar")
+                    putar = 1
+                    maju = 0
+                    
                 possible_left  = 180 + movementRobot[i][1] - arahRobot
                 possible_right = 180 - movementRobot[i][1] + arahRobot
                 if (possible_right > possible_left): #belokKiri
@@ -223,5 +252,6 @@ while robot.step(timestep) != -1:
                 pose = [0, 0, 0]
                 x_mobo_prev = 0
         xname=xname+1
-        print(xname)
+        #print(simpanData)
+        #print(xname)
     
