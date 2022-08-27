@@ -119,46 +119,54 @@ def getMidPoint(camImage):
     #erode for noise elimination,dilate to restore some eroded parts of image
 
 def printdata(saveImage,ImageProc,saveRealPos,saveCSV):
-    filename = str(str(xname)+extension)
-    loc_save = str("img/"+filename)
-    gps_pos=[]
     values=[]
-    gps_pos.append(filename)
     values.append(filename)
     if saveImage == 1:
         camera.saveImage(loc_save,10)
     if saveRealPos == 1:
         val_gps = gps.getValues()
-        gps_pos.append(val_gps[0])
-        gps_pos.append(val_gps[1])
-        gps_pos.append(val_gps[2])  
+        values.append(val_gps[0])
+        values.append(val_gps[1]) 
     if ImageProc == 1:
         #print(get_data_from_camera(robot,camera))
         values.append(get_data_from_camera(robot,camera))
         print(values)
     if saveCSV == 1:
-        file = open('garis256.csv','a')
+        file = open('data.csv','a')
         writer = csv.writer(file)
         writer.writerow(values)
-        file.close()
-        file = open('posisi.csv','a')
-        writer = csv.writer(file) 
-        writer.writerow(gps_pos)
         file.close()
 jalan = 0
 simpanData = 0
 putar = 0
 maju = 0
+print(xname)
+
+#filename = str(str(xname)+extension)
+#loc_save = str("img/"+filename)
+#imgnya2 = cv2.imread(loc_save)
+#cv2.imshow("img record",imgnya2)
+#cv2.waitKey()
+        
 while robot.step(timestep) != -1:
     #print('posisi = ', x, y)
     #print('goal   = ', goal)
     # cek posisi robot terhadap hasil path planing
-   
+    filename = str(str(xname)+extension)
+    loc_save = str("img/"+filename)
+    counter = 0
     if kb.getKey() == 315:
         printdata(1,1,1,1)
         print("get data")
-        xname=xname+1
         print(xname)
+        xname=xname+1
+        while counter!=10000000:
+            counter+=1
+            #print(counter)
+        #filename = str(xname)
+        #imgnya = cv2.imread(loc_save)
+        #cv2.imshow("img record",imgnya)
+        #cv2.waitKey()
     if kb.getKey() == 317 or jalan == 1:
         jalan = 1
         #print("automate")
@@ -251,7 +259,7 @@ while robot.step(timestep) != -1:
                     rightMotor.setVelocity(0.5)
                 pose = [0, 0, 0]
                 x_mobo_prev = 0
-        xname=xname+1
+    
         #print(simpanData)
         #print(xname)
-    
+        xname=xname+1
