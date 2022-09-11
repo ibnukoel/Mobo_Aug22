@@ -20,13 +20,13 @@ delta = [[-1, 0, 1],  # go up
          [1, 0, 1],  # go down
          [0, 1, 1]]  # go right
 
-#next move,robot facing, x , y ,left,right)
-movementRobot = [[2, 0,    0, 1,  0, 1],
-                 [4, -90,  1, 1,  1, 0],
-                 [6, 0,    1, 2,  0, 1],
-                 [11, 0,   2, 1,  0, 1],
-                 [14, -90, 2, 3,  1, 0],
-                 [15, -90, 3, 3,  1, 0]]
+#next move,robot facing, x , y ,left,right, rho,rhomax)
+movementRobot = [[2, 0,    0, 1,  0, 1,0 ,0],
+                 [4, 0,    0, 2,  1, 0,3 ,35],
+                 [6, -90,  1, 2,  0, 1,16 ,105],
+                 [11, 0,   2, 1,  0, 1,16,105],
+                 [14, -90, 2, 3,  1, 0,3,35],
+                 [15, -90, 3, 3,  1, 0,16 ,105]]
                  
 def printmap(grid):
     for i in range(len(grid)):
