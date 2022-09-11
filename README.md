@@ -14,4 +14,14 @@ I using E-puck in Webots simulation to perform the mobile robot. What we need in
 
 **Path Planing :** A* Path planing is path planing method for finding the shortest path for the robot archive the goal with counting the gain of each grid map then.
 
+Update with adding mode :
+we have 3 modes :
+0 = use to capture data manualy
+1 = run automatically without correction 
+2 = run automatically using correction
+
+add mode correction with :
+nextmovement have 6 items each steps
+add one image processng to correction with submodule lineproc
+
 
