@@ -5,7 +5,7 @@ import math, numpy, random, cv2
 import sys, csv
 from mode import mode
 #import pathPlaning
-from mapping import map,valnya, grid,grid_scale,delta,movementRobot,printmap
+from mapping import map,valnya, grid,grid_scale,delta,movementRobot,printmap,cartesianRobot
 from imager import get_data_from_camera, lineproc
 
 #initialization
@@ -151,7 +151,6 @@ print(xname)
 print(mode)
         
 while robot.step(timestep) != -1:
-    print(starttime)
     filename = str(str(xname)+extension)
     loc_save = str("img/"+filename)
     counter = 0
@@ -163,7 +162,7 @@ while robot.step(timestep) != -1:
         while counter!=10000000:
             counter+=1
 
-    if mode == 1:
+    else :
         jalan = 1
         if x == goal[0] and y == goal[1]:
             print("sampai")
@@ -181,9 +180,10 @@ while robot.step(timestep) != -1:
                     printdata(1,1,1,1)
                     selesai = 1
                     print("isi selesai == 0")
+                    sys.exit(0)
             print("koreksi ",koreksi)
             #saveExperimentData()
-            sys.exit(0)
+            
                 
         else:
             selesai = 0
@@ -247,10 +247,12 @@ while robot.step(timestep) != -1:
                 y_mobo = math.floor(abs(pose[1]) / grid_scale) - y_mobo_prev
                 
                 
-                #jika robot masih di grid yang sama
+                #jika robot ada di grid baru
                 if (x_mobo != 0):
                     x_mobo_prev = x_mobo + x_mobo_prev
                     y_mobo_prev = y_mobo + y_mobo_prev
+                    #x += (x_mobo * cartesianRobot(movementRobot[i][1])[0]) + (y_mobo * cartesianRobot(movementRobot[i][1])[0])
+                    #y += (x_mobo * cartesianRobot(movementRobot[i][1])[1]) + (y_mobo * cartesianRobot(movementRobot[i][1])[1])
                     x += (x_mobo * movementRobot[i][4]) + (y_mobo * movementRobot[i][4])
                     y += (x_mobo * movementRobot[i][5]) + (y_mobo * movementRobot[i][5])
     
