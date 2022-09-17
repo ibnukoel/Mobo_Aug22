@@ -31,3 +31,18 @@ movementRobot = [[2, 0,    0, 1,  0, 1,0 ,0],
 def printmap(grid):
     for i in range(len(grid)):
         print(grid[i])
+
+def cartesianRobot (movementRobot):
+    if movementRobot == 0:
+        x = 0
+        y = 1
+    elif movementRobot == 90:
+        x = 1
+        y = 0
+    elif movementRobot == 180:
+        x = 0
+        y = -1
+    elif movementRobot == -90:
+        x = -1
+        y = 0
+    return x,y
