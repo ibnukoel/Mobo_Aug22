@@ -5,7 +5,7 @@ import math, numpy, random, cv2
 import sys, csv
 from mode import mode
 #import pathPlaning
-from mapping import map,valnya, grid,grid_scale,delta,movementRobot,printmap
+from mapping import map,valnya, grid,grid_scale,delta,movementRobot,printmap,cartesianRobot
 from imager import get_data_from_camera, lineproc
 
 #initialization
@@ -62,11 +62,17 @@ d_mid = d / 2.0
 #Posisi Awal
 x_init = 0
 y_init = 0
+koreksi = 0
+pose = [0,0,0]
+#jalan = True
+simpanData = 0
+putar = 0
+maju = 0
+xxx=0 #flag
 #posisi sekarang
 x = 0
 y = 0
-i = 0 #posisi awal di movementList
-pose = [0,0,0]
+i = 0 
 #posisi_sebelumnya
 x_mobo_prev = 0
 y_mobo_prev = 0
@@ -121,9 +127,10 @@ def getMidPoint(camImage):
 
 def printdata(saveImage,ImageProc,saveRealPos,saveCSV):
     values=[]
+    print(koreksi)
     rho = 0
     theta = 0
-    values.append(filename)
+    values.append([filename,koreksi])
     if saveImage == 1:
         camera.saveImage(loc_save,10)
     if saveRealPos == 1:
@@ -142,11 +149,7 @@ def printdata(saveImage,ImageProc,saveRealPos,saveCSV):
         file.close()
     return rho,theta
     
-jalan = 0
-simpanData = 0
-putar = 0
-maju = 0
-koreksi = 0
+
 print(xname)
 print(mode)
         
@@ -155,55 +158,105 @@ while robot.step(timestep) != -1:
     loc_save = str("img/"+filename)
     counter = 0
     if mode == 0:
-        printdata(1,1,1,1)
-        print("get data")
-        print(xname)
-        xname=xname+1
-        while counter!=10000000:
-            counter+=1
-
+        if kb.getKey()==315:
+            printdata(1,1,1,1)
+            print("get data")
+            print(xname)
+            xname=xname+1
+            while counter!=10000000:
+                counter+=1
+    
     else :
-        jalan = 1
+        #jalan = True
         if x == goal[0] and y == goal[1]:
             print("sampai")
-            print(selesai)
-            if selesai == 0 :
+            print("selesai",selesai)
+            if not selesai :
                 rho,theta = printdata(0,1,1,1)
-                koreksi,motor = lineproc(mode,rho,theta,movementRobot[i-1][6])
+                koreksi,motor = lineproc(mode,rho,theta,movementRobot[i-1][6],koreksi)
                 leftMotor.setVelocity(motor[0])
                 rightMotor.setVelocity(motor[1])
             if koreksi == 0 :
                 leftMotor.setVelocity(0)
                 rightMotor.setVelocity(0)
-                jalan = 0
-                if selesai == 0 :
+                #Flag
+                if not selesai :
                     printdata(1,1,1,1)
-                    selesai = 1
-                    print("isi selesai == 0")
+                    selesai = True
+                    print("selesai", selesai)
                     sys.exit(0)
             print("koreksi ",koreksi)
             #saveExperimentData()
             
                 
         else:
-            selesai = 0
+            selesai = False
             arah = get_direction()
             arahRobot = arah[0]
+            # kalkulasi pergerakan robot
             RotEnc_new = get_motor_pos()
             pose = robot_movement(RotEnc, RotEnc_new, enc_unit, pose)
             RotEnc = RotEnc_new
             
-            if koreksi == 0 :
+            if koreksi == 1:
+                print("koreksi maju")
+                rho,theta = printdata(1,1,1,1)
+                koreksi,motor = lineproc(mode,rho,theta,movementRobot[i-1][6],koreksi)
+            elif koreksi == 2:
+                print("koreksi mundur")
+                rho,theta = printdata(1,1,1,1)
+                koreksi,motor = lineproc(mode,rho,theta,movementRobot[i-1][6],koreksi)
+            elif koreksi == 0 :
+                #cek arah robot apakah sesuai
                 if arahRobot >= movementRobot[i][1] - 0.5 and arahRobot <= movementRobot[i][1] + 0.5:    
                     simpanData = 0
                     #flag
-                    if maju == 0 :
+                    if not maju :
                         print("maju")
-                        putar = 0
-                        maju = 1
+                        putar = True
+                        maju = True
                         printdata(1,1,1,1)
-                    
                     motor=[3,3]     
+                    
+                    # kalkulasi pergerakan robot
+                    #RotEnc_new = get_motor_pos()
+                    #pose = robot_movement(RotEnc, RotEnc_new, enc_unit, pose)
+                    #RotEnc = RotEnc_new
+                    
+                    #update posisi mobo
+                    x_mobo = math.floor(abs(pose[0]) / grid_scale) - x_mobo_prev
+                    y_mobo = math.floor(abs(pose[1]) / grid_scale) - y_mobo_prev
+                    
+                
+                    #jika robot pindah grid
+                    if (x_mobo != 0):
+                        #Update Robot Posisi Grid
+                        x_mobo_prev = x_mobo + x_mobo_prev
+                        y_mobo_prev = y_mobo + y_mobo_prev
+                        x += (x_mobo * movementRobot[i][4]) + (y_mobo * movementRobot[i][4])
+                        y += (x_mobo * movementRobot[i][5]) + (y_mobo * movementRobot[i][5])
+                        #x += (x_mobo * cartesianRobot(movementRobot[i][1])[0]) + (y_mobo * cartesianRobot(movementRobot[i][1])[0])
+                        #y += (x_mobo * cartesianRobot(movementRobot[i][1])[1]) + (y_mobo * cartesianRobot(movementRobot[i][1])[1])
+        
+                        map[x_init][y_init] = ' '
+                        map[x][y] = '#'
+                        print('updatemap')
+                        x_init = x
+                        y_init = y
+                        i += 1
+                        #print('pergerakan ke i= ', i)
+                        print(pose)
+                        printmap(map)
+                        #reset pose untuk grid baru
+                        pose = [0, 0, 0]
+                        x_mobo_prev = 0
+                        y_mobo_prev = 0
+                        rho,theta = printdata(0,1,0,0)
+                        koreksi,motor = lineproc(mode,rho,theta,movementRobot[i-1][6],koreksi)
+                        if koreksi == 0:
+                            print("tidak ada koreksi")
+                            rho,theta = printdata(1,1,1,1)
+                    
                 #arah tidak sesuai PUTAR sampai arah sesuai
                 else :
                     possible_left  = 180 + movementRobot[i][1] - arahRobot
@@ -215,59 +268,22 @@ while robot.step(timestep) != -1:
                     if(possible_right > possible_left): #belokKanan
                         motor = [0.5,-0.5]
                         sign = "belok kanan"
-                        
-                    pose = [0, 0, 0]
-                    x_mobo_prev = 0
+                    
+                    #reset posisi    
+                    #pose = [0, 0, 0]
+                    #x_mobo_prev = 0
                     
                     #flag
-                    if putar == 0 :
+                    if not putar :
                         print("putar")
-                        putar = 1
-                        maju = 0
+                        putar = True
+                        maju = False
                         print("L = ",possible_left)
                         print("R = ",possible_right)    
                         print(sign)
-                    
-                
+            
+                                
             leftMotor.setVelocity(motor[0])
             rightMotor.setVelocity(motor[1])
-            
-            if koreksi == 1:
-                print("koreksi ",koreksi)
-                rho,theta = printdata(0,1,1,1)
-                koreksi,motor = lineproc(mode,rho,theta,movementRobot[i-1][6])
-                
-            else :                    
-                # kalkulasi pergerakan robot
-                RotEnc_new = get_motor_pos()
-                pose = robot_movement(RotEnc, RotEnc_new, enc_unit, pose)
-                RotEnc = RotEnc_new
-                #update posisi mobo
-                x_mobo = math.floor(abs(pose[0]) / grid_scale) - x_mobo_prev
-                y_mobo = math.floor(abs(pose[1]) / grid_scale) - y_mobo_prev
-                
-                
-                #jika robot masih di grid yang sama
-                if (x_mobo != 0):
-                    x_mobo_prev = x_mobo + x_mobo_prev
-                    y_mobo_prev = y_mobo + y_mobo_prev
-                    x += (x_mobo * movementRobot[i][4]) + (y_mobo * movementRobot[i][4])
-                    y += (x_mobo * movementRobot[i][5]) + (y_mobo * movementRobot[i][5])
-    
-                    map[x_init][y_init] = ' '
-                    map[x][y] = '#'
-                    print('updatemap')
-                    x_init = x
-                    y_init = y
-                    i += 1
-                    print('pergerakan ke i= ', i)
-                    print(pose)
-                    printmap(map)
-                    #reset pose untuk grid baru
-                    pose = [0, 0, 0]
-                    x_mobo_prev = 0
-                    y_mobo_prev = 0
-                    rho,theta = printdata(0,1,1,1)
-                    koreksi,motor = lineproc(mode,rho,theta,movementRobot[i-1][6])
-                    
+                   
         xname=xname+1
