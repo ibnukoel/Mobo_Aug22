@@ -1,23 +1,3 @@
-# -----------
-# User Instructions:
-#
-# Modify the the search function so that it returns
-# a shortest path as follows:
-#
-# [['>', 'v', ' ', ' ', ' ', ' '],
-#  [' ', '>', '>', '>', '>', 'v'],
-#  [' ', ' ', ' ', ' ', ' ', 'v'],
-#  [' ', ' ', ' ', ' ', ' ', 'v'],
-#  [' ', ' ', ' ', ' ', ' ', '*']]
-#
-# Where '>', '<', '^', and 'v' refer to right, left,
-# up, and down motions. Note that the 'v' should be
-# lowercase. '*' should mark the goal cell.
-#
-# You may assume that all test cases for this function
-# will have a path from init to goal.
-# ----------
-
 
 #garis di atas = 98,+kanan = 94, +kiri = 93,  +kanan+kiri = 90
 #garis di kanan = 97,+kiri = 86               +atas+bawah = 89
@@ -25,17 +5,13 @@
 #garis di kiri = 95,                          +atas+bawah = 87
 
 
-mapLine = [[93, 98, 98, 98, 98, 94],
-        [91, 96, 96, 96, 96, 97],
-        [1, 1, 1, 1, 1, 86],
-        [0, 0, 0, 0, 1, 86],
-        [0, 0, 1, 0, 1, 88]]
+mapLine = [[93, 98, 98, 98, 94],
+        [91, 96, 96, 96, 97],
+        [0, 0, 0, 1, 88]]
 
-grid = [[0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0],
-        [1, 1, 1, 1, 1, 0],
-        [0, 0, 0, 0, 1, 0],
-        [0, 0, 1, 0, 1, 0]]
+grid = [[0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0]]
 
 init = [0, 0]
 goal = [len(grid)-1, len(grid[0])-1]
@@ -97,6 +73,8 @@ def search(grid,init,goal,cost):
                             action[x2][y2] = i
                             #g = g2
 
+
+    #path ilustration
     #creat path from action / direction
     x = goal[0]
     y = goal[1]
@@ -107,15 +85,17 @@ def search(grid,init,goal,cost):
         expand[x2][y2] = delta_name[action[x][y]]
         x = x2
         y = y2
+    printmap(expand)
+    return action #return expand # make sure you return the shortest path
 
-    return action,expand #return expand # make sure you return the shortest path
+action = search(grid,init,goal,cost)
+#printmap(newpath)
+#printmap(action)
 
-action,newpath = search(grid,init,goal,cost)
-printmap(newpath)
-printmap(action)
-
-def deltaRho_cal(x,y,z):
+def deltaRho_cal(x,y,z,dx,dy):
     ML = mapLine[x][y]
+    x_2 = x + dx
+    y_2 = y + dy
     # garis di atas = 98,+kanan = 94, +kiri = 93,  +kanan+kiri = 90
     # garis di kanan = 97,+kiri = 86               +atas+bawah = 89
     # garis di bawah = 96,+kanan = 92, +kiri = 91, +kanan+kiri = 88
@@ -138,10 +118,11 @@ def deltaRho_cal(x,y,z):
             dp = dp1
         else: dp = 0
 
-    x_2 = x+1
-    y_2 = y+1
+
+    #print(ML,x,y,dp,z)
+
     if dp == 0 and x_2 < len(mapLine) and y_2 < len(mapLine[1]):
-        ML = mapLine[x+1][y+1]
+        ML = mapLine[x_2][y_2]
         # garis di atas = 98,+kanan = 94, +kiri = 93,  +kanan+kiri = 90
         # garis di kanan = 97,+kiri = 86               +atas+bawah = 89
         # garis di bawah = 96,+kanan = 92, +kiri = 91, +kanan+kiri = 88
@@ -167,29 +148,47 @@ def deltaRho_cal(x,y,z):
                 dp = dp2
             else:
                 dp = 0
+        #print("kot2", ML, x_2, y_2, dp,z)
 
     return dp
 
-
-# movement configuration :
-# urutan,next move,robot facing, x , y , deltaRho1, deltaRho2,rhomin)
-# movement = [0, z, x, y, 0, 0, 0]
-x = goal[0]
-y = goal[1]
-z2 = goal_dir
-z1 = delta_val[action[x][y]]
-dpA = deltaRho_cal(x, y, z1)
-dpB = deltaRho_cal(x, y, z2)
-movement = [[0, z2, x, y, dpA, dpB]]
-i = 1
-while x !=init[0] or y!=init[1]:
-    x = x - delta[action[x][y]][0]
-    y = y - delta[action[x][y]][1]
-    z2 = z1
+def movement_path():
+    # movement configuration :
+    # urutan,next move,robot facing, x , y , deltaRho1, deltaRho2,rhomin)
+    # movement = [0, z, x, y, 0, 0, 0]
+    x = goal[0]
+    y = goal[1]
+    z2 = goal_dir
     z1 = delta_val[action[x][y]]
-    dpA = deltaRho_cal(x, y, z1)
-    dpB = deltaRho_cal(x, y, z2)
-    movement.append([i, z2, x, y, dpA, dpB])
-    i = i+1
+    dx=0
+    dy=0
+    dpA = deltaRho_cal(x, y, z1,dx,dy)
+    dpB = deltaRho_cal(x, y, z2,dx,dy)
+    movement = [[0, z2, x, y, dpA, dpB]]
+    i = 1
+    #print(i, z2, x, y, dpA, dpB)
+    #print("===")
 
-print("test",movement)
+    while x !=init[0] or y !=init[1]:
+        dx = delta[action[x][y]][0]
+        dy = delta[action[x][y]][1]
+        x2 = x - dx
+        y2 = y - dy
+        z2 = z1
+        z1 = delta_val[action[x2][y2]]
+        dpA = deltaRho_cal(x2, y2, z1,dx,dy)
+        dpB = deltaRho_cal(x2, y2, z2,dx,dy)
+        #print(i,z2,x2,y2,dpA,dpB)
+        #print("===")
+        movement.append([i, z2, x2, y2, dpA, dpB])
+        x = x2
+        y = y2
+        i = i+1
+    movement.sort(reverse=True)
+    return movement
+
+
+
+print("=====")
+movement = movement_path()
+printmap(movement)
